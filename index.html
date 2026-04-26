@@ -1,600 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>VELEN AI Studio</title>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
-  <style>
-    :root {
-      --bg:       #080b10;
-      --card:     #0f1520;
-      --border:   rgba(0,180,255,0.15);
-      --neon:     #00b4ff;
-      --glow:     rgba(0,180,255,0.35);
-      --muted:    #5a6a85;
-      --text:     #ddeeff;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VELEN AI Studio</title>
 
-    *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 60px 20px 80px;
-      overflow-x: hidden;
-    }
-
-    /* subtle grid bg */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(0,180,255,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,180,255,0.03) 1px, transparent 1px);
-      background-size: 48px 48px;
-      pointer-events: none;
-    }
-
-    /* ── HEADER ── */
-    header {
-      text-align: center;
-      margin-bottom: 48px;
-      animation: fadeUp .6s ease both;
-    }
-
-    .logo {
-      font-family: 'Syne', sans-serif;
-      font-size: 1.1rem;
-      font-weight: 800;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--neon);
-      margin-bottom: 24px;
-      opacity: .7;
-    }
-
-    h1 {
-      font-family: 'Syne', sans-serif;
-      font-size: clamp(2rem, 5vw, 3.6rem);
-      font-weight: 800;
-      letter-spacing: -.03em;
-      line-height: 1.1;
-      max-width: 700px;
-    }
-    h1 em { color: var(--neon); font-style: normal; }
-
-    .sub {
-      margin-top: 16px;
-      color: var(--muted);
-      font-size: 1rem;
-      font-weight: 300;
-      line-height: 1.7;
-    }
-
-    /* ── MAIN CARD ── */
-    .card {
-      width: 100%;
-      max-width: 680px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      overflow: hidden;
-      box-shadow: 0 24px 60px rgba(0,0,0,.5);
-      animation: fadeUp .6s .15s ease both;
-    }
-
-    /* ── UPLOAD ZONE ── */
-    #dropZone {
-      padding: 56px 32px;
-      cursor: pointer;
-      border: 2px dashed rgba(0,180,255,0.25);
-      border-radius: 20px;
-      margin: 16px;
-      transition: border-color .25s, background .25s;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 14px;
-    }
-    #dropZone:hover, #dropZone.drag-over {
-      border-color: var(--neon);
-      background: rgba(0,180,255,0.04);
-    }
-
-    .upload-icon {
-      width: 68px; height: 68px;
-      border-radius: 18px;
-      background: rgba(0,180,255,0.1);
-      border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-    }
-    .upload-icon svg { width: 30px; color: var(--neon); }
-
-    #dropZone h2 {
-      font-family: 'Syne', sans-serif;
-      font-size: 1.15rem;
-      font-weight: 700;
-    }
-    #dropZone p { font-size: .85rem; color: var(--muted); }
-
-    /* FIX 1: fileInput hidden */
-    #fileInput { display: none; }
-
-    .btn-upload {
-      display: inline-flex; align-items: center; gap: 8px;
-      margin-top: 6px;
-      background: var(--neon);
-      color: #000;
-      font-family: 'DM Sans', sans-serif;
-      font-weight: 700;
-      font-size: .9rem;
-      padding: 12px 28px;
-      border-radius: 10px;
-      border: none;
-      cursor: pointer;
-      box-shadow: 0 0 20px var(--glow);
-      transition: transform .2s, box-shadow .2s;
-    }
-    .btn-upload:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 0 32px var(--glow);
-    }
-    .btn-upload svg { width: 16px; }
-
-    /* ── PROCESSING ── */
-    #processing {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      gap: 20px;
-      padding: 60px 32px;
-    }
-    #processing.active { display: flex; }
-
-    .ring {
-      width: 52px; height: 52px;
-      border: 3px solid rgba(0,180,255,0.15);
-      border-top-color: var(--neon);
-      border-radius: 50%;
-      animation: spin .75s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .prog-bar-wrap {
-      width: 240px;
-      height: 4px;
-      background: rgba(0,180,255,0.1);
-      border-radius: 99px;
-      overflow: hidden;
-    }
-    .prog-bar {
-      height: 100%;
-      width: 0%;
-      background: var(--neon);
-      border-radius: 99px;
-      box-shadow: 0 0 10px var(--neon);
-      transition: width .15s ease;
-    }
-
-    .proc-label {
-      font-size: .85rem;
-      color: var(--muted);
-    }
-    .proc-label span { color: var(--neon); font-weight: 600; }
-
-    /* ── ERROR ── */
-    #errorBox {
-      display: none;
-      margin: 20px;
-      padding: 16px 20px;
-      border-radius: 12px;
-      background: rgba(255,60,60,0.08);
-      border: 1px solid rgba(255,60,60,0.25);
-      color: #ff6b6b;
-      font-size: .875rem;
-      text-align: center;
-    }
-    #errorBox.active { display: block; }
-
-    /* ── RESULT ── */
-    #result {
-      display: none;
-    }
-    #result.active { display: block; }
-
-    .result-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 24px;
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-    }
-    .result-header h3 {
-      font-family: 'Syne', sans-serif;
-      font-size: .9rem;
-      font-weight: 700;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-    }
-
-    .btn-reset {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      padding: 6px 14px;
-      border-radius: 7px;
-      font-size: .8rem;
-      cursor: pointer;
-      font-family: 'DM Sans', sans-serif;
-      transition: all .2s;
-    }
-    .btn-reset:hover { border-color: var(--neon); color: var(--neon); }
-
-    /* slider compare */
-    .compare-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      position: relative;
-    }
-    .compare-side {
-      position: relative;
-      overflow: hidden;
-    }
-    .compare-side img {
-      width: 100%;
-      height: 280px;
-      object-fit: cover;
-      display: block;
-    }
-    .compare-side .tag {
-      position: absolute;
-      bottom: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(8,11,16,0.8);
-      border: 1px solid var(--border);
-      padding: 4px 12px;
-      border-radius: 99px;
-      font-size: .72rem;
-      font-weight: 600;
-      letter-spacing: .07em;
-      text-transform: uppercase;
-      white-space: nowrap;
-      backdrop-filter: blur(8px);
-    }
-    .compare-side.after .tag { color: var(--neon); border-color: rgba(0,180,255,0.4); }
-    .compare-side.after img { filter: contrast(1.06) saturate(1.15); }
-
-    .divider-line {
-      position: absolute;
-      top: 0; bottom: 0;
-      left: 50%;
-      width: 2px;
-      background: var(--neon);
-      box-shadow: 0 0 12px var(--neon);
-      pointer-events: none;
-    }
-    .divider-dot {
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%,-50%);
-      width: 28px; height: 28px;
-      background: var(--neon);
-      border-radius: 50%;
-      box-shadow: 0 0 20px var(--neon);
-      display: flex; align-items: center; justify-content: center;
-    }
-    .divider-dot svg { width: 14px; color: #000; }
-
-    .download-bar {
-      padding: 16px 24px;
-      display: flex;
-      justify-content: center;
-      border-top: 1px solid var(--border);
-    }
-    .btn-download {
-      display: inline-flex; align-items: center; gap: 8px;
-      background: transparent;
-      border: 1px solid var(--neon);
-      color: var(--neon);
-      padding: 10px 24px;
-      border-radius: 9px;
-      font-size: .875rem;
-      font-weight: 600;
-      font-family: 'DM Sans', sans-serif;
-      cursor: pointer;
-      transition: all .2s;
-      text-decoration: none;
-    }
-    .btn-download:hover {
-      background: var(--neon);
-      color: #000;
-      box-shadow: 0 0 20px var(--glow);
-    }
-    .btn-download svg { width: 15px; }
-
-    /* ── FEATURES ── */
-    .features {
-      display: grid;
-      grid-template-columns: repeat(3,1fr);
-      gap: 1px;
-      border-top: 1px solid var(--border);
-      background: var(--border);
-    }
-    .feat {
-      background: var(--card);
-      padding: 24px;
-      text-align: center;
-    }
-    .feat-icon { font-size: 1.4rem; margin-bottom: 8px; }
-    .feat h4 {
-      font-family: 'Syne', sans-serif;
-      font-size: .85rem;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-    .feat p { font-size: .78rem; color: var(--muted); line-height: 1.5; }
-
-    @keyframes fadeUp {
-      from { opacity:0; transform:translateY(20px); }
-      to   { opacity:1; transform:translateY(0); }
-    }
-
-    @media(max-width:500px){
-      .features { grid-template-columns: 1fr; }
-      .compare-side img { height: 180px; }
-      h1 { font-size: 1.9rem; }
-    }
-  </style>
+<style>
+body {background:#080b10;color:#fff;font-family:'DM Sans';text-align:center;padding-top:100px}
+.upload-zone{border:2px dashed #00b4ff;padding:40px;border-radius:20px;cursor:pointer}
+img{width:100%;max-width:300px;margin-top:20px}
+.hidden{display:none}
+</style>
 </head>
+
 <body>
 
-<header>
-  <div class="logo">VELEN AI Studio</div>
-  <h1>Enhance Your Images with <em>AI Power</em></h1>
-  <p class="sub">Upload any photo and watch our AI sharpen every detail — instantly.</p>
-</header>
+<h1>VELEN AI Studio</h1>
 
-<div class="card">
+<div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+  <p>Click or Drop Image</p>
+  <input type="file" id="fileInput" accept="image/*">
+</div>
 
-  <!-- UPLOAD ZONE -->
-  <!-- FIX 2: removed duplicate onclick attribute, handled only in JS -->
-  <div id="dropZone">
-    <div class="upload-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-        <polyline points="17 8 12 3 7 8"/>
-        <line x1="12" y1="3" x2="12" y2="15"/>
-      </svg>
-    </div>
-    <h2>Drop your image here</h2>
-    <p>PNG, JPG, WebP — up to 20 MB</p>
-    <button class="btn-upload" id="uploadBtn">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-      </svg>
-      Upload Image
-    </button>
-    <!-- FIX 1: input is hidden via CSS, not shown inside the zone -->
-    <input type="file" id="fileInput" accept="image/*"/>
-  </div>
+<div id="processing" class="hidden">
+  <p>Processing... <span id="percent">0%</span></p>
+</div>
 
-  <!-- PROCESSING -->
-  <div id="processing">
-    <div class="ring"></div>
-    <div class="prog-bar-wrap"><div class="prog-bar" id="progBar"></div></div>
-    <p class="proc-label">Enhancing with AI… <span id="percent">0%</span></p>
-  </div>
-
-  <!-- ERROR -->
-  <div id="errorBox"></div>
-
-  <!-- RESULT -->
-  <div id="result">
-    <div class="result-header">
-      <h3>Result</h3>
-      <button class="btn-reset" id="resetBtn">↩ Try another</button>
-    </div>
-
-    <div class="compare-grid">
-      <div class="compare-side">
-        <img id="imgBefore" alt="Original"/>
-        <div class="tag">Before</div>
-      </div>
-      <div class="compare-side after">
-        <img id="imgAfter" alt="Enhanced"/>
-        <div class="tag">After · AI Enhanced</div>
-      </div>
-      <div class="divider-line">
-        <div class="divider-dot">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3M3 16v3a2 2 0 002 2h3m8 0h3a2 2 0 002-2v-3"/>
-          </svg>
-        </div>
-      </div>
-    </div>
-
-    <div class="download-bar">
-      <a class="btn-download" id="downloadBtn" download="velen-enhanced.png">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-        Download Enhanced Image
-      </a>
-    </div>
-  </div>
-
-  <!-- FEATURES STRIP -->
-  <div class="features">
-    <div class="feat">
-      <div class="feat-icon">⚡</div>
-      <h4>Fast AI Enhancement</h4>
-      <p>4× upscaling in seconds</p>
-    </div>
-    <div class="feat">
-      <div class="feat-icon">🔒</div>
-      <h4>Secure & Private</h4>
-      <p>Auto-deleted after processing</p>
-    </div>
-    <div class="feat">
-      <div class="feat-icon">✨</div>
-      <h4>Free to Start</h4>
-      <p>No sign-up required</p>
-    </div>
-  </div>
+<div id="result" class="hidden">
+  <h3>Before</h3>
+  <img id="imgBefore">
+  <h3>After</h3>
+  <img id="imgAfter">
 </div>
 
 <script>
-  /* ── Elements ── */
-  const fileInput  = document.getElementById('fileInput');
-  const dropZone   = document.getElementById('dropZone');
-  const uploadBtn  = document.getElementById('uploadBtn');
-  const processing = document.getElementById('processing');
-  const progBar    = document.getElementById('progBar');
-  const percent    = document.getElementById('percent');
-  const result     = document.getElementById('result');
-  const errorBox   = document.getElementById('errorBox');
-  const imgBefore  = document.getElementById('imgBefore');
-  const imgAfter   = document.getElementById('imgAfter');
-  const resetBtn   = document.getElementById('resetBtn');
-  const downloadBtn= document.getElementById('downloadBtn');
+const fileInput = document.getElementById("fileInput");
+const dropZone = document.getElementById("dropZone");
+const processing = document.getElementById("processing");
+const percent = document.getElementById("percent");
+const result = document.getElementById("result");
+const imgBefore = document.getElementById("imgBefore");
+const imgAfter = document.getElementById("imgAfter");
 
-  /* ── FIX 2: single click handler — no duplicate onclick attribute ── */
-  uploadBtn.addEventListener('click', e => {
-    e.stopPropagation();   // don't bubble to dropZone
-    fileInput.click();
-  });
-  dropZone.addEventListener('click', () => fileInput.click());
+dropZone.onclick = () => fileInput.click();
 
-  /* ── Drag & Drop ── */
-  dropZone.addEventListener('dragover', e => {
-    e.preventDefault();
-    dropZone.classList.add('drag-over');
-  });
-  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-  dropZone.addEventListener('drop', e => {
-    e.preventDefault();
-    dropZone.classList.remove('drag-over');
-    handleFile(e.dataTransfer.files[0]);
-  });
+fileInput.onchange = () => handleFile(fileInput.files[0]);
 
-  fileInput.addEventListener('change', () => handleFile(fileInput.files[0]));
+dropZone.ondragover = e => { e.preventDefault(); };
+dropZone.ondrop = e => {
+  e.preventDefault();
+  handleFile(e.dataTransfer.files[0]);
+};
 
-  resetBtn.addEventListener('click', resetUI);
+async function handleFile(file){
+  if(!file) return;
 
-  /* ── State helpers ── */
-  function showState(state) {
-    dropZone.style.display   = state === 'upload'     ? ''      : 'none';
-    processing.classList.toggle('active', state === 'processing');
-    result.classList.toggle('active', state === 'result');
-    errorBox.classList.remove('active');
-  }
+  const reader = new FileReader();
 
-  function showError(msg) {
-    errorBox.textContent = '⚠ ' + msg;
-    errorBox.classList.add('active');
-    showState('upload');
-  }
+  reader.onload = async function(e){
+    const src = e.target.result;
 
-  function resetUI() {
-    fileInput.value = '';
-    imgBefore.src = '';
-    imgAfter.src  = '';
-    progBar.style.width = '0%';
-    percent.textContent = '0%';
-    showState('upload');
-  }
+    dropZone.style.display = "none";
+    processing.classList.remove("hidden");
+    result.classList.add("hidden");
 
-  /* ── Progress animation ── */
-  let progressInterval = null;
-
-  function startProgress() {
     let p = 0;
-    progressInterval = setInterval(() => {
-      // Slow crawl up to 90%, then wait for real response
-      const step = p < 60 ? 8 : p < 85 ? 2 : 0.3;
-      p = Math.min(p + step, 90);
-      progBar.style.width = p + '%';
-      percent.textContent = Math.round(p) + '%';
-    }, 150);
-  }
-
-  function finishProgress() {
-    clearInterval(progressInterval);
-    progBar.style.width = '100%';
-    percent.textContent = '100%';
-  }
-
-  /* ── Main handler ── */
-  async function handleFile(file) {
-    if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      showError('Please upload a valid image (PNG, JPG, or WebP).');
-      return;
-    }
-    if (file.size > 20 * 1024 * 1024) {
-      showError('File is too large. Maximum size is 20 MB.');
-      return;
-    }
-
-    const src = await readFile(file);
-
-    imgBefore.src = src;
-    showState('processing');
-    startProgress();
+    const interval = setInterval(()=>{
+      p += 10;
+      if(p > 90) p = 90;
+      percent.innerText = p + "%";
+    },100);
 
     try {
-      /* FIX 3: clean single fetch to /api/enhance — no duplicate/broken code */
-      const response = await fetch('/api/enhance', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: src })
-      });
 
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        throw new Error(err.error || `Server error ${response.status}`);
-      }
+ const response = await fetch("/api/enhance", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ image: src })
+});
+
+const data = await response.json();
+
+imgAfter.src = data.output;
+
+        body: JSON.stringify({
+  version: "db21e45e7f1a0e0b8c8e0d8f7a7f1b6a2d4c5e8f9a0b1c2d3e4f5a6b7c8e9f0",
+  input: {
+    image: image
+  }
+})
 
       const data = await response.json();
 
-      if (!data.output) throw new Error('No output returned from the API.');
+      // نجيب النتيجة (ممكن تاخد وقت)
+      let outputUrl = null;
 
-      finishProgress();
-      await delay(300);
+      while(!outputUrl){
+        const check = await fetch(data.urls.get, {
+          headers: {
+            "Authorization": "Token YOUR_API_KEY"
+          }
+        });
+        const resultData = await check.json();
+        outputUrl = resultData.output?.[0];
+        await new Promise(r => setTimeout(r, 1500));
+      }
 
-      imgAfter.src = data.output;
-      downloadBtn.href = data.output;
-      showState('result');
+      clearInterval(interval);
+      percent.innerText = "100%";
+
+      processing.classList.add("hidden");
+
+      imgBefore.src = src;
+      imgAfter.src = outputUrl;
+
+      result.classList.remove("hidden");
 
     } catch (err) {
-      finishProgress();
+      alert("Error processing image");
       console.error(err);
-      showError(err.message || 'Something went wrong. Please try again.');
     }
-  }
 
-  /* ── Helpers ── */
-  function readFile(file) {
-    return new Promise((resolve, reject) => {
-      const r = new FileReader();
-      r.onload  = e => resolve(e.target.result);
-      r.onerror = () => reject(new Error('Could not read file.'));
-      r.readAsDataURL(file);
-    });
-  }
+  };
 
-  function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+  reader.readAsDataURL(file);
+}
 </script>
 
 </body>
