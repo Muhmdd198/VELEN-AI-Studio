@@ -19,9 +19,9 @@ img{width:100%;max-width:300px;margin-top:20px}
 
 <h1>VELEN AI Studio</h1>
 
-<div id="dropZone" class="upload-zone">
+<div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
   <p>Click or Drop Image</p>
-  <input type="file" id="fileInput" hidden>
+  <input type="file" id="fileInput" accept="image/*">
 </div>
 
 <div id="processing" class="hidden">
