@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VELEN AI Studio</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+body {background:#080b10;color:#fff;font-family:'DM Sans';text-align:center;padding-top:100px}
+.upload-zone{border:2px dashed #00b4ff;padding:40px;border-radius:20px;cursor:pointer}
+img{width:100%;max-width:300px;margin-top:20px}
+.hidden{display:none}
+</style>
+</head>
+
+<body>
+
+<h1>VELEN AI Studio</h1>
+
+<div id="dropZone" class="upload-zone">
+  <p>Click or Drop Image</p>
+  <input type="file" id="fileInput" hidden>
+</div>
+
+<div id="processing" class="hidden">
+  <p>Processing... <span id="percent">0%</span></p>
+</div>
+
+<div id="result" class="hidden">
+  <h3>Before</h3>
+  <img id="imgBefore">
+  <h3>After</h3>
+  <img id="imgAfter">
+</div>
+
+<script>
+const fileInput = document.getElementById("fileInput");
+const dropZone = document.getElementById("dropZone");
+const processing = document.getElementById("processing");
+const percent = document.getElementById("percent");
+const result = document.getElementById("result");
+const imgBefore = document.getElementById("imgBefore");
+const imgAfter = document.getElementById("imgAfter");
+
+dropZone.onclick = () => fileInput.click();
+
+fileInput.onchange = () => handleFile(fileInput.files[0]);
+
+dropZone.ondragover = e => { e.preventDefault(); };
+dropZone.ondrop = e => {
+  e.preventDefault();
+  handleFile(e.dataTransfer.files[0]);
+};
+
+async function handleFile(file){
+  if(!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = async function(e){
+    const src = e.target.result;
+
+    dropZone.style.display = "none";
+    processing.classList.remove("hidden");
+    result.classList.add("hidden");
+
+    let p = 0;
+    const interval = setInterval(()=>{
+      p += 10;
+      if(p > 90) p = 90;
+      percent.innerText = p + "%";
+    },100);
+
+    try {
+
+ const response = await fetch("/api/enhance", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ image: src })
+});
+
+const data = await response.json();
+
+imgAfter.src = data.output;
+
+        body: JSON.stringify({
+          version: "42fed1c4976f5e5a3c4d0c2a0d9f7d2d8f8b6f8b9c0e9f7c2a6d8e9f7b1a2c3d", 
+          input: {
+            image: src
+          }
+        })
+      });
+
+      const data = await response.json();
+
+      // نجيب النتيجة (ممكن تاخد وقت)
+      let outputUrl = null;
+
+      while(!outputUrl){
+        const check = await fetch(data.urls.get, {
+          headers: {
+            "Authorization": "Token YOUR_API_KEY"
+          }
+        });
+        const resultData = await check.json();
+        outputUrl = resultData.output?.[0];
+        await new Promise(r => setTimeout(r, 1500));
+      }
+
+      clearInterval(interval);
+      percent.innerText = "100%";
+
+      processing.classList.add("hidden");
+
+      imgBefore.src = src;
+      imgAfter.src = outputUrl;
+
+      result.classList.remove("hidden");
+
+    } catch (err) {
+      alert("Error processing image");
+      console.error(err);
+    }
+
+  };
+
+  reader.readAsDataURL(file);
+}
+</script>
+
+</body>
+</html>
