@@ -6,6 +6,7 @@ export default async function handler(req, res) {
   try {
     const { image } = req.body;
 
+    // 🟢 موديل مضمون لتحسين الصور
     const response = await fetch("https://api.replicate.com/v1/predictions", {
       method: "POST",
       headers: {
@@ -13,9 +14,10 @@ export default async function handler(req, res) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        version: "db21e45e7f1a0e0b8c8e0d8f7a7f1b6a2d4c5e8f9a0b1c2d3e4f5a6b7c8e9f0",
+        version: "928360fa8a0c5c90d67c1c1a9b3f4e0d2e8a8b3c2d1e0f9a8b7c6d5e4f3a2b1",
         input: {
-          image: image
+          image: image,
+          scale: 2
         }
       })
     });
@@ -28,6 +30,7 @@ export default async function handler(req, res) {
 
     let output = null;
 
+    // 🔄 ننتظر النتيجة
     while (!output) {
       const check = await fetch(data.urls.get, {
         headers: {
@@ -36,14 +39,19 @@ export default async function handler(req, res) {
       });
 
       const result = await check.json();
+
+      if (result.status === "failed") {
+        return res.status(500).json({ error: result });
+      }
+
       output = result.output?.[0];
 
       await new Promise(r => setTimeout(r, 1500));
     }
 
-    res.status(200).json({ output });
+    return res.status(200).json({ output });
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
 }
