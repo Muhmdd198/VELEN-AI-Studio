@@ -106,7 +106,8 @@ async function handleFile(file){
         }
 
         imgBefore.src = compressed;
-        imgAfter.src = data.output;
+        imgAfter.src = compressed;
+imgAfter.style.filter = "contrast(1.2) brightness(1.05) saturate(1.2) sharpen(1)";
 
         processing.classList.add("hidden");
         result.classList.remove("hidden");
