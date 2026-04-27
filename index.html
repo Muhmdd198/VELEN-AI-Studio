@@ -62,7 +62,7 @@ async function handleFile(file){
 
     img.onload = async function(){
 
-      // 🔥 تصغير الصورة علشان نحل مشكلة 413
+      // 🔥 تصغير الصورة (حل 413)
       const canvas = document.createElement("canvas");
       const maxWidth = 800;
 
@@ -81,7 +81,6 @@ async function handleFile(file){
       const ctx = canvas.getContext("2d");
       ctx.drawImage(img, 0, 0, width, height);
 
-      // ضغط الصورة
       const compressed = canvas.toDataURL("image/jpeg", 0.7);
 
       dropZone.style.display = "none";
@@ -97,9 +96,11 @@ async function handleFile(file){
 
         const data = await response.json();
 
+        // 🔥 DEBUG
+        console.log("API RESPONSE:", data);
+
         if (!data.output) {
           alert("AI failed");
-          console.log(data);
           return;
         }
 
@@ -111,7 +112,7 @@ async function handleFile(file){
 
       } catch (err) {
         alert("Error");
-        console.error(err);
+        console.error("FRONT ERROR:", err);
       }
     };
   };
