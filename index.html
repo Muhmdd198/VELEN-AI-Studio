@@ -96,11 +96,12 @@ async function handleFile(file){
 
         const data = await response.json();
 
-        // 🔥 DEBUG
+        // 🔥 DEBUG كامل
         console.log("API RESPONSE:", data);
 
         if (!data.output) {
           alert("AI failed");
+          console.log("FULL ERROR:", data);
           return;
         }
 
