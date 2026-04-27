@@ -56,38 +56,64 @@ async function handleFile(file){
 
   const reader = new FileReader();
 
-  reader.onload = async function(e){
-    const src = e.target.result;
+  reader.onload = function(e){
+    const img = new Image();
+    img.src = e.target.result;
 
-    dropZone.style.display = "none";
-    processing.classList.remove("hidden");
-    result.classList.add("hidden");
+    img.onload = async function(){
 
-    try {
-      const response = await fetch("/api/enhance", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: src })
-      });
+      // 🔥 تصغير الصورة علشان نحل مشكلة 413
+      const canvas = document.createElement("canvas");
+      const maxWidth = 800;
 
-      const data = await response.json();
+      let width = img.width;
+      let height = img.height;
 
-      if (!data.output) {
-        alert("AI failed");
-        console.log(data);
-        return;
+      if(width > maxWidth){
+        const scale = maxWidth / width;
+        width = maxWidth;
+        height = height * scale;
       }
 
-      imgBefore.src = src;
-      imgAfter.src = data.output;
+      canvas.width = width;
+      canvas.height = height;
 
-      processing.classList.add("hidden");
-      result.classList.remove("hidden");
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
 
-    } catch (err) {
-      alert("Error");
-      console.error(err);
-    }
+      // ضغط الصورة
+      const compressed = canvas.toDataURL("image/jpeg", 0.7);
+
+      dropZone.style.display = "none";
+      processing.classList.remove("hidden");
+      result.classList.add("hidden");
+
+      try {
+        const response = await fetch("/api/enhance", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ image: compressed })
+        });
+
+        const data = await response.json();
+
+        if (!data.output) {
+          alert("AI failed");
+          console.log(data);
+          return;
+        }
+
+        imgBefore.src = compressed;
+        imgAfter.src = data.output;
+
+        processing.classList.add("hidden");
+        result.classList.remove("hidden");
+
+      } catch (err) {
+        alert("Error");
+        console.error(err);
+      }
+    };
   };
 
   reader.readAsDataURL(file);
